@@ -1,103 +1,155 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import StockTicker from "./components/StockTicker";
+import Navbar from "./components/Navbar";
+
+const slides = [
+  {
+    text: (
+      <>
+        Making sense of the current <span className="text-green-400">economy</span> <br /> for <span className="text-green-400">Gen Z</span>
+      </>
+    ),
+  },
+  {
+    text: (
+      <>
+        <span>2025 has been <span className="text-yellow-400">interesting</span>...</span>
+      </>
+    ),
+  },
+  {
+    text: (
+      <>
+        Trade wars, recession, massive layoffs, <span className="text-red-500">tariffs</span>...
+      </>
+    ),
+  },
+  {
+    text: (
+      <>
+        The receiving end of most of these <span className="text-red-500">challenges</span> are most Americans, specifically <span className="text-green-400">Gen Z</span>
+      </>
+    ),
+  },
+  {
+    text: (
+      <>
+        Yet we're also the most <span className="text-red-500">ignorant</span> generation
+      </>
+    ),
+  },
+  {
+    text: (
+      <>
+        But that changes now with <span className="text-green-400">Interpreter</span>
+      </>
+    ),
+  },
+  {
+    text: (
+      <>
+        <span className="text-green-400">Search</span> with natural language to see how policies have affected your favorite products
+      </>
+    ),
+  },
+  {
+    text: (
+      <>
+        <span className="text-green-400">Compare</span> prices at different retailers to get the best deal
+      </>
+    ),
+  },
+  {
+    text: (
+      <>
+        Get a <span className="text-green-400">curated</span> newsfeed on the economy simplified for Gen-Z
+      </>
+    ),
+  },
+  {
+    text: (
+      <>
+        Make sense of the market and stay informed with <span className="text-green-400">Interpreter</span>
+        <br />
+        <Link href="/dashboard">
+          <button className="mt-8 px-6 py-3 bg-green-500 text-white rounded-full text-lg font-bold shadow-lg hover:bg-green-600 transition">Try now</button>
+        </Link>
+      </>
+    ),
+  },
+];
+
+const STOCKS = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"];
+
+function useStockPrices() {
+  const [prices, setPrices] = useState(
+    STOCKS.map((symbol) => ({ symbol, price: 0, change: 0 }))
+  );
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    async function fetchPrices() {
+      // Replace with a real API in production
+      // Simulate random price changes for demo
+      setPrices((prev) =>
+        prev.map((stock) => {
+          const change = (Math.random() - 0.5) * 5;
+          return {
+            ...stock,
+            price: Math.max(100, stock.price + change),
+            change: change,
+          };
+        })
+      );
+    }
+    fetchPrices();
+    interval = setInterval(fetchPrices, 3000);
+    return () => clearInterval(interval);
+  }, []);
+  return prices;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [slide, setSlide] = useState(0);
+  const [fade, setFade] = useState(true);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    if (slide < slides.length - 1) {
+      timeoutRef.current = setTimeout(() => {
+        setFade(false);
+        setTimeout(() => {
+          setSlide((s) => s + 1);
+          setFade(true);
+        }, 600); // fade out duration
+      }, 3000);
+    }
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [slide]);
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white relative overflow-hidden">
+      {/* Navbar */}
+      <div className="absolute top-0 left-0 w-full z-10">
+        <Navbar />
+      </div>
+      {/* Slides */}
+      <div className="flex-1 flex flex-col items-center justify-center w-full px-2 sm:px-0">
+        <div
+          className={`transition-opacity duration-600 ease-in-out text-2xl sm:text-5xl font-bold text-center max-w-xs sm:max-w-3xl mx-auto ${
+            fade ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ minHeight: 180 }}
+        >
+          {slides[slide].text}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+      {/* Stock Ticker */}
+      <StockTicker />
     </div>
   );
 }
